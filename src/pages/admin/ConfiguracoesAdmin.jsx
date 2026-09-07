@@ -37,6 +37,7 @@ export default function ConfiguracoesAdmin() {
       horarioAbertura: "10:00",
       horarioFechamento: "14:00",
       lojaAberta: true,
+      avisoAtivo: true,
       aviso: ""
     });
 
@@ -79,6 +80,8 @@ export default function ConfiguracoesAdmin() {
           "14:00",
         lojaAberta:
           dados.lojaAberta !== false,
+        avisoAtivo:
+          dados.avisoAtivo !== false,
         aviso:
           dados.aviso || ""
       });
@@ -603,6 +606,56 @@ export default function ConfiguracoesAdmin() {
               titulo="Aviso"
               descricao="Mensagem para os clientes"
             />
+
+            <label
+              className="
+                flex
+                items-center
+                justify-between
+                gap-4
+                bg-[#f6ebe3]
+                p-4
+                rounded-2xl
+                mb-4
+              "
+            >
+              <div>
+                <p
+                  className="
+                    font-extrabold
+                    text-[#453126]
+                  "
+                >
+                  Exibir aviso
+                </p>
+
+                <p
+                  className="
+                    text-xs
+                    text-[#806b5e]
+                    mt-1
+                  "
+                >
+                  Ative ou desative a mensagem para os clientes.
+                </p>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={form.avisoAtivo}
+                onChange={(event) =>
+                  alterarCampo(
+                    "avisoAtivo",
+                    event.target.checked
+                  )
+                }
+                className="
+                  w-5
+                  h-5
+                  accent-[#d86b24]
+                "
+              />
+            </label>
 
             <textarea
               rows={4}

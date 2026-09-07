@@ -1,4 +1,5 @@
 import BottomMenu from "./BottomMenu";
+import WhatsAppButton from "./WhatsAppButton";
 
 function ClienteLayout({ children }) {
   return (
@@ -46,6 +47,7 @@ function ClienteLayout({ children }) {
           {children}
         </main>
 
+        <WhatsAppButton />
         <BottomMenu />
       </div>
     </div>

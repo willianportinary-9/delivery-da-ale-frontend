@@ -268,7 +268,7 @@ async function buscarConfiguracoes() {
                     font-bold
                   "
                 >
-                  Delivery da Alê
+                  {configuracoes?.nomeLoja || "Delivery da Alê"}
                 </h1>
 
 {configuracoes && (
@@ -518,7 +518,7 @@ async function buscarConfiguracoes() {
         </div>
       </section>
 
-      {configuracoes?.aviso && (
+      {configuracoes?.avisoAtivo !== false && configuracoes?.aviso && (
 
   <section
     className="
@@ -864,7 +864,7 @@ async function buscarConfiguracoes() {
                               font-semibold
                             "
                           >
-                            Delivery da Alê
+                            {configuracoes?.nomeLoja || "Delivery da Alê"}
                           </span>
                         </div>
                       )}

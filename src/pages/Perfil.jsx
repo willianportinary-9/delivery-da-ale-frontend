@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 import {
   ChevronRight,
@@ -7,8 +7,11 @@ import {
   LogOut,
   Mail,
   MapPin,
+  Pencil,
   Phone,
+  Save,
   ShieldCheck,
+  X,
   UserRound,
   UtensilsCrossed
 } from "lucide-react";
@@ -20,6 +23,8 @@ import {
 
 import toast from "react-hot-toast";
 
+import api from "../services/api";
+
 import {
   AuthContext
 } from "../context/AuthContext";
@@ -27,11 +32,145 @@ import {
 export default function Perfil() {
 
   const {
-    usuario,
-    logout
-  } = useContext(AuthContext);
+  usuario,
+  token,
+  login,
+  logout
+} = useContext(AuthContext);
 
-  const navigate = useNavigate();
+const navigate = useNavigate();
+
+  const [editandoTelefone, setEditandoTelefone] =
+    useState(false);
+
+  const [telefone, setTelefone] =
+    useState("");
+
+  const [salvandoTelefone, setSalvandoTelefone] =
+    useState(false);
+
+  function formatarTelefone(valor) {
+
+  const numeros =
+    String(valor || "")
+      .replace(/\D/g, "")
+      .slice(0, 11);
+
+  if (numeros.length <= 2) {
+    return numeros;
+  }
+
+  if (numeros.length <= 6) {
+    return `(${numeros.slice(
+      0,
+      2
+    )}) ${numeros.slice(2)}`;
+  }
+
+  if (numeros.length <= 10) {
+    return `(${numeros.slice(
+      0,
+      2
+    )}) ${numeros.slice(
+      2,
+      6
+    )}-${numeros.slice(6)}`;
+  }
+
+  return `(${numeros.slice(
+    0,
+    2
+  )}) ${numeros.slice(
+    2,
+    7
+  )}-${numeros.slice(7)}`;
+}
+
+function iniciarEdicaoTelefone() {
+
+  setTelefone(
+    formatarTelefone(
+      usuario?.telefone || ""
+    )
+  );
+
+  setEditandoTelefone(true);
+}
+
+function cancelarEdicaoTelefone() {
+
+  setTelefone("");
+
+  setEditandoTelefone(false);
+}
+
+async function salvarTelefone() {
+
+  const telefoneLimpo =
+    telefone.replace(/\D/g, "");
+
+  if (
+    telefoneLimpo.length < 10 ||
+    telefoneLimpo.length > 11
+  ) {
+
+    toast.error(
+      "Informe um telefone válido com DDD."
+    );
+
+    return;
+  }
+
+  try {
+
+    setSalvandoTelefone(true);
+
+    const response =
+      await api.put(
+        "/usuarios/perfil",
+        {
+          telefone: telefoneLimpo
+        }
+      );
+
+    /*
+      Reutilizamos o login que já
+      existe no AuthContext.
+      Assim atualizamos:
+      - usuario
+      - localStorage
+      - mantemos o mesmo token
+    */
+
+    login(
+      response.data.usuario,
+      token
+    );
+
+    setEditandoTelefone(false);
+
+    toast.success(
+      "Telefone atualizado com sucesso!"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao atualizar telefone:",
+      error
+    );
+
+    toast.error(
+      error.response?.data?.mensagem ||
+      "Não foi possível atualizar o telefone."
+    );
+
+  } finally {
+
+    setSalvandoTelefone(false);
+
+  }
+}
 
   function sair() {
 
@@ -493,31 +632,180 @@ export default function Perfil() {
               </span>
             </div>
 
-            {usuario.telefone && (
+            <div>
 
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-3
-                "
-              >
-                <Phone
-                  size={18}
-                  className="text-[#c45a1a]"
-                />
+  <div
+    className="
+      flex
+      items-center
+      gap-3
+    "
+  >
 
-                <span
-                  className="
-                    text-sm
-                    text-[#654f43]
-                  "
-                >
-                  {usuario.telefone}
-                </span>
-              </div>
+    <Phone
+      size={18}
+      className="text-[#c45a1a]"
+    />
 
-            )}
+    <span
+      className="
+        flex-1
+        text-sm
+        text-[#654f43]
+      "
+    >
+
+      {usuario.telefone
+        ? formatarTelefone(
+            usuario.telefone
+          )
+        : "Telefone não informado"}
+
+    </span>
+
+    {!editandoTelefone && (
+
+      <button
+        type="button"
+        onClick={
+          iniciarEdicaoTelefone
+        }
+        className="
+          w-9
+          h-9
+          shrink-0
+          rounded-xl
+          bg-[#f3e2d4]
+          text-[#c45a1a]
+          flex
+          items-center
+          justify-center
+          transition
+          hover:bg-[#ead2c0]
+        "
+        title="Editar telefone"
+      >
+
+        <Pencil size={16} />
+
+      </button>
+
+    )}
+
+  </div>
+
+  {editandoTelefone && (
+
+    <div
+      className="
+        mt-3
+        ml-7
+      "
+    >
+
+      <input
+        type="tel"
+        value={telefone}
+        onChange={(event) =>
+          setTelefone(
+            formatarTelefone(
+              event.target.value
+            )
+          )
+        }
+        placeholder="(38) 99999-9999"
+        className="
+          w-full
+          h-[46px]
+          px-4
+          bg-white
+          border
+          border-[#dfcabc]
+          rounded-xl
+          outline-none
+          text-sm
+          text-[#453126]
+          focus:border-[#d86b24]
+        "
+      />
+
+      <div
+        className="
+          grid
+          grid-cols-2
+          gap-2
+          mt-2
+        "
+      >
+
+        <button
+          type="button"
+          onClick={
+            cancelarEdicaoTelefone
+          }
+          disabled={
+            salvandoTelefone
+          }
+          className="
+            min-h-[42px]
+            border
+            border-[#d8bdaa]
+            bg-white
+            text-[#70442d]
+            rounded-xl
+            font-bold
+            text-sm
+            flex
+            items-center
+            justify-center
+            gap-2
+          "
+        >
+
+          <X size={16} />
+
+          Cancelar
+
+        </button>
+
+        <button
+          type="button"
+          onClick={
+            salvarTelefone
+          }
+          disabled={
+            salvandoTelefone
+          }
+          className="
+            min-h-[42px]
+            bg-[#d86b24]
+            text-white
+            rounded-xl
+            font-extrabold
+            text-sm
+            flex
+            items-center
+            justify-center
+            gap-2
+            disabled:opacity-60
+          "
+        >
+
+          <Save size={16} />
+
+          {salvandoTelefone
+            ? "Salvando..."
+            : "Salvar"}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  )}
+
+</div>
 
           </div>
 
