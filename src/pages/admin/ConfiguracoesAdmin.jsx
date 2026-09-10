@@ -5,6 +5,8 @@ import {
 
 import {
   Clock3,
+  LockKeyhole,
+  Mail,
   MessageSquare,
   Phone,
   QrCode,
@@ -27,6 +29,31 @@ export default function ConfiguracoesAdmin() {
   const [salvando, setSalvando] =
     useState(false);
 
+    const [
+  carregandoConta,
+  setCarregandoConta
+] = useState(true);
+
+const [
+  salvandoConta,
+  setSalvandoConta
+] = useState(false);
+
+const [
+  contaAdmin,
+  setContaAdmin
+] = useState(null);
+
+const [
+  formSeguranca,
+  setFormSeguranca
+] = useState({
+  novoEmail: "",
+  senhaAtual: "",
+  novaSenha: "",
+  confirmarNovaSenha: ""
+});
+
   const [form, setForm] =
     useState({
       nomeLoja: "",
@@ -43,6 +70,8 @@ export default function ConfiguracoesAdmin() {
 
   useEffect(() => {
     carregarConfiguracoes();
+
+    carregarContaAdmin();
   }, []);
 
   async function carregarConfiguracoes() {
@@ -165,6 +194,174 @@ export default function ConfiguracoesAdmin() {
 
   }
 
+  async function carregarContaAdmin() {
+
+  try {
+
+    setCarregandoConta(true);
+
+    const response =
+      await api.get(
+        "/usuarios/admin/conta"
+      );
+
+    setContaAdmin(
+      response.data.usuario
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao carregar conta do administrador:",
+      error
+    );
+
+    toast.error(
+      error.response?.data?.mensagem ||
+      "Não foi possível carregar os dados da conta."
+    );
+
+  } finally {
+
+    setCarregandoConta(false);
+
+  }
+
+}
+
+function alterarCampoSeguranca(
+  campo,
+  valor
+) {
+
+  setFormSeguranca(
+    (anterior) => ({
+      ...anterior,
+      [campo]: valor
+    })
+  );
+
+}
+
+async function salvarConta(event) {
+
+  event.preventDefault();
+
+  const novoEmail =
+    formSeguranca.novoEmail
+      .trim();
+
+  const senhaAtual =
+    formSeguranca.senhaAtual;
+
+  const novaSenha =
+    formSeguranca.novaSenha;
+
+  const confirmarNovaSenha =
+    formSeguranca
+      .confirmarNovaSenha;
+
+  if (!senhaAtual) {
+
+    toast.error(
+      "Informe sua senha atual."
+    );
+
+    return;
+  }
+
+  const vaiTrocarSenha =
+    novaSenha.length > 0 ||
+    confirmarNovaSenha.length > 0;
+
+  if (
+    !novoEmail &&
+    !vaiTrocarSenha
+  ) {
+
+    toast.error(
+      "Informe um novo e-mail ou uma nova senha."
+    );
+
+    return;
+  }
+
+  if (vaiTrocarSenha) {
+
+    if (novaSenha.length < 6) {
+
+      toast.error(
+        "A nova senha deve ter pelo menos 6 caracteres."
+      );
+
+      return;
+    }
+
+    if (
+      novaSenha !==
+      confirmarNovaSenha
+    ) {
+
+      toast.error(
+        "A confirmação da nova senha não confere."
+      );
+
+      return;
+    }
+
+  }
+
+  try {
+
+    setSalvandoConta(true);
+
+    const response =
+      await api.put(
+        "/usuarios/admin/conta",
+        {
+          novoEmail,
+          senhaAtual,
+          novaSenha,
+          confirmarNovaSenha
+        }
+      );
+
+    setContaAdmin(
+      response.data.usuario
+    );
+
+    setFormSeguranca({
+      novoEmail: "",
+      senhaAtual: "",
+      novaSenha: "",
+      confirmarNovaSenha: ""
+    });
+
+    toast.success(
+      "Dados de acesso atualizados com sucesso!"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao atualizar conta:",
+      error
+    );
+
+    toast.error(
+      error.response?.data?.mensagem ||
+      "Não foi possível atualizar os dados."
+    );
+
+  } finally {
+
+    setSalvandoConta(false);
+
+  }
+
+}
+  
+  
   if (carregando) {
 
     return (
@@ -725,6 +922,263 @@ export default function ConfiguracoesAdmin() {
 
         </form>
 
+{/* SEGURANÇA DA CONTA */}
+
+<section
+  className="
+    bg-[#fffaf5]
+    border
+    border-[#e5d5ca]
+    rounded-3xl
+    p-5
+    mt-6
+  "
+>
+
+  <Titulo
+    icone={LockKeyhole}
+    titulo="Segurança da conta"
+    descricao="E-mail e senha do administrador"
+  />
+
+  {carregandoConta ? (
+
+    <div
+      className="
+        py-8
+        text-center
+      "
+    >
+
+      <RefreshCw
+        size={24}
+        className="
+          mx-auto
+          text-[#d86b24]
+          animate-spin
+        "
+      />
+
+      <p
+        className="
+          mt-3
+          text-sm
+          font-bold
+          text-[#806b5e]
+        "
+      >
+        Carregando dados da conta...
+      </p>
+
+    </div>
+
+  ) : (
+
+    <>
+
+      {/* E-MAIL ATUAL */}
+
+      <div
+        className="
+          bg-[#f6ebe3]
+          rounded-2xl
+          p-4
+        "
+      >
+
+        <p
+          className="
+            text-xs
+            font-bold
+            text-[#806b5e]
+          "
+        >
+          E-mail atual
+        </p>
+
+        <div
+          className="
+            flex
+            items-center
+            gap-2
+            mt-2
+          "
+        >
+
+          <Mail
+            size={18}
+            className="text-[#c45a1a]"
+          />
+
+          <span
+            className="
+              text-sm
+              font-bold
+              text-[#453126]
+              break-all
+            "
+          >
+            {contaAdmin?.email ||
+              "Não informado"}
+          </span>
+
+        </div>
+
+      </div>
+
+      <form
+        onSubmit={salvarConta}
+        className="
+          mt-5
+          space-y-4
+        "
+      >
+
+        <Campo
+          titulo="Novo e-mail"
+          type="email"
+          placeholder="Digite apenas se quiser alterar"
+          value={
+            formSeguranca.novoEmail
+          }
+          onChange={(valor) =>
+            alterarCampoSeguranca(
+              "novoEmail",
+              valor
+            )
+          }
+        />
+
+        <Campo
+          titulo="Senha atual"
+          type="password"
+          placeholder="Obrigatória para confirmar"
+          value={
+            formSeguranca.senhaAtual
+          }
+          onChange={(valor) =>
+            alterarCampoSeguranca(
+              "senhaAtual",
+              valor
+            )
+          }
+        />
+
+        <div
+          className="
+            grid
+            sm:grid-cols-2
+            gap-4
+          "
+        >
+
+          <Campo
+            titulo="Nova senha"
+            type="password"
+            placeholder="Mínimo 6 caracteres"
+            value={
+              formSeguranca.novaSenha
+            }
+            onChange={(valor) =>
+              alterarCampoSeguranca(
+                "novaSenha",
+                valor
+              )
+            }
+          />
+
+          <Campo
+            titulo="Confirmar nova senha"
+            type="password"
+            placeholder="Repita a nova senha"
+            value={
+              formSeguranca
+                .confirmarNovaSenha
+            }
+            onChange={(valor) =>
+              alterarCampoSeguranca(
+                "confirmarNovaSenha",
+                valor
+              )
+            }
+          />
+
+        </div>
+
+        <div
+          className="
+            bg-[#fff4e8]
+            border
+            border-[#efd4bd]
+            rounded-2xl
+            p-4
+          "
+        >
+
+          <p
+            className="
+              text-xs
+              text-[#755340]
+              leading-relaxed
+            "
+          >
+            Para alterar o e-mail ou
+            a senha, informe sua senha
+            atual. Se não quiser alterar
+            um dos campos, deixe-o vazio.
+          </p>
+
+        </div>
+
+        <button
+          type="submit"
+          disabled={salvandoConta}
+          className="
+            w-full
+            min-h-[52px]
+            bg-[#5a3520]
+            hover:bg-[#452819]
+            disabled:opacity-60
+            text-white
+            rounded-2xl
+            font-extrabold
+            flex
+            items-center
+            justify-center
+            gap-2
+          "
+        >
+
+          {salvandoConta ? (
+
+            <RefreshCw
+              size={18}
+              className="animate-spin"
+            />
+
+          ) : (
+
+            <LockKeyhole
+              size={18}
+            />
+
+          )}
+
+          {salvandoConta
+            ? "Atualizando..."
+            : "Atualizar conta"}
+
+        </button>
+
+      </form>
+
+    </>
+
+  )}
+
+</section>
+
+
       </div>
 
     </div>
@@ -798,7 +1252,8 @@ function Campo({
   value,
   onChange,
   placeholder = "",
-  inputMode
+  inputMode,
+  type = "text"
 }) {
 
   return (
@@ -819,6 +1274,7 @@ function Campo({
         value={value}
         placeholder={placeholder}
         inputMode={inputMode}
+        type={type}
         onChange={(event) =>
           onChange(
             event.target.value

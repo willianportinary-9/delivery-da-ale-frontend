@@ -1,6 +1,9 @@
-import { useContext } from "react";
+import {
+  useContext
+} from "react";
 
 import {
+  Bell,
   LayoutDashboard,
   ClipboardList,
   PackageOpen,
@@ -21,11 +24,23 @@ import {
 } from "../context/AuthContext";
 
 export default function AdminSidebar({
+
   aberto = false,
-  fechar = () => {}
+
+  fechar = () => {},
+
+  novosPedidos = 0,
+
+  abrirPedidosNovos =
+    () => {},
+
+  marcarPedidosVistos =
+    () => {}
+
 }) {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
   const {
     usuario,
@@ -44,34 +59,58 @@ export default function AdminSidebar({
         replace: true
       }
     );
+
+  }
+
+  function clicarMenu(
+    rota
+  ) {
+
+    if (
+      rota ===
+      "/admin/pedidos"
+    ) {
+
+      marcarPedidosVistos();
+
+    }
+
+    fechar();
+
   }
 
   const menu = [
+
     {
       nome: "Dashboard",
       rota: "/admin/dashboard",
       icone: LayoutDashboard
     },
+
     {
       nome: "Pedidos",
       rota: "/admin/pedidos",
       icone: ClipboardList
     },
+
     {
       nome: "Produtos",
       rota: "/admin/produtos",
       icone: PackageOpen
     },
+
     {
       nome: "Categorias",
       rota: "/admin/categorias",
       icone: Tags
     },
+
     {
       nome: "Configurações",
       rota: "/admin/configuracoes",
       icone: Settings
     }
+
   ];
 
   return (
@@ -144,9 +183,11 @@ export default function AdminSidebar({
                 shadow-lg
               "
             >
+
               <UtensilsCrossed
                 size={22}
               />
+
             </div>
 
             <div>
@@ -189,7 +230,9 @@ export default function AdminSidebar({
               justify-center
             "
           >
+
             <X size={19} />
+
           </button>
 
         </div>
@@ -223,8 +266,10 @@ export default function AdminSidebar({
             truncate
           "
         >
+
           {usuario?.nome ||
             "Administrador"}
+
         </p>
 
         <span
@@ -247,6 +292,118 @@ export default function AdminSidebar({
           Admin
         </span>
 
+        {/* NOTIFICAÇÃO */}
+
+        <button
+          type="button"
+          onClick={() => {
+
+            abrirPedidosNovos();
+
+            fechar();
+
+          }}
+          className="
+            w-full
+            mt-4
+            min-h-[58px]
+            px-3
+            rounded-2xl
+            bg-white/10
+            hover:bg-white/15
+            border
+            border-white/10
+            flex
+            items-center
+            gap-3
+            text-left
+            transition
+          "
+        >
+
+          <div
+            className="
+              relative
+              w-10
+              h-10
+              shrink-0
+              rounded-xl
+              bg-[#d86b24]/20
+              text-[#f0b98d]
+              flex
+              items-center
+              justify-center
+            "
+          >
+
+            <Bell size={19} />
+
+            {novosPedidos > 0 && (
+
+              <span
+                className="
+                  absolute
+                  -top-2
+                  -right-2
+                  min-w-[20px]
+                  h-5
+                  px-1
+                  bg-[#d86b24]
+                  text-white
+                  text-[10px]
+                  font-extrabold
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+
+                {novosPedidos > 99
+                  ? "99+"
+                  : novosPedidos}
+
+              </span>
+
+            )}
+
+          </div>
+
+          <div
+            className="
+              flex-1
+              min-w-0
+            "
+          >
+
+            <p
+              className="
+                text-xs
+                font-extrabold
+                text-white
+              "
+            >
+              Novos pedidos
+            </p>
+
+            <p
+              className="
+                text-[11px]
+                text-[#cdb9ad]
+                mt-0.5
+              "
+            >
+
+              {novosPedidos > 0
+                ? `${novosPedidos} aguardando visualização`
+                : "Nenhum pedido novo"}
+
+            </p>
+
+          </div>
+
+        </button>
+
       </div>
 
       {/* MENU */}
@@ -262,14 +419,19 @@ export default function AdminSidebar({
 
         {menu.map((item) => {
 
-          const Icone = item.icone;
+          const Icone =
+            item.icone;
 
           return (
 
             <NavLink
               key={item.rota}
               to={item.rota}
-              onClick={fechar}
+              onClick={() =>
+                clicarMenu(
+                  item.rota
+                )
+              }
               className={({
                 isActive
               }) => `
@@ -301,7 +463,41 @@ export default function AdminSidebar({
 
               <Icone size={19} />
 
-              {item.nome}
+              <span
+                className="
+                  flex-1
+                "
+              >
+                {item.nome}
+              </span>
+
+              {item.rota ===
+                "/admin/pedidos" &&
+                novosPedidos > 0 && (
+
+                <span
+                  className="
+                    min-w-[23px]
+                    h-[23px]
+                    px-1.5
+                    bg-white
+                    text-[#d86b24]
+                    text-[10px]
+                    font-extrabold
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
+
+                  {novosPedidos > 99
+                    ? "99+"
+                    : novosPedidos}
+
+                </span>
+
+              )}
 
             </NavLink>
 
@@ -341,9 +537,11 @@ export default function AdminSidebar({
             transition
           "
         >
+
           <LogOut size={18} />
 
           Sair do painel
+
         </button>
 
       </div>
@@ -351,4 +549,5 @@ export default function AdminSidebar({
     </aside>
 
   );
+
 }

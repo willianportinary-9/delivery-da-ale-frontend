@@ -77,7 +77,7 @@ export default function PedidosAdmin() {
       setInterval(
         () =>
           carregarPedidos(false),
-        15000
+        10000
       );
 
     return () =>
