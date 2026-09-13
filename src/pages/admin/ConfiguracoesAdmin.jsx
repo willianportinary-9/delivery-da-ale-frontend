@@ -55,18 +55,20 @@ const [
 });
 
   const [form, setForm] =
-    useState({
-      nomeLoja: "",
-      whatsapp: "",
-      pixChave: "",
-      pixNome: "",
-      taxaEntrega: "3",
-      horarioAbertura: "10:00",
-      horarioFechamento: "14:00",
-      lojaAberta: true,
-      avisoAtivo: true,
-      aviso: ""
-    });
+  useState({
+    nomeLoja: "",
+    whatsapp: "",
+    nomeEntregador: "",
+    whatsappEntregador: "",
+    pixChave: "",
+    pixNome: "",
+    taxaEntrega: "3",
+    horarioAbertura: "10:00",
+    horarioFechamento: "14:00",
+    lojaAberta: true,
+    avisoAtivo: true,
+    aviso: ""
+  });
 
   useEffect(() => {
     carregarConfiguracoes();
@@ -93,6 +95,13 @@ const [
           dados.nomeLoja || "",
         whatsapp:
           dados.whatsapp || "",
+
+          nomeEntregador:
+  dados.nomeEntregador || "",
+
+whatsappEntregador:
+
+  dados.whatsappEntregador || "",
         pixChave:
           dados.pixChave || "",
         pixNome:
@@ -677,6 +686,90 @@ async function salvarConta(event) {
             />
 
           </section>
+
+          {/* ENTREGADOR */}
+
+<section
+  className="
+    bg-[#fffaf5]
+    border
+    border-[#e5d5ca]
+    rounded-3xl
+    p-5
+  "
+>
+
+  <Titulo
+    icone={Truck}
+    titulo="Entregador"
+    descricao="Dados para compartilhar pedidos"
+  />
+
+  <div
+    className="
+      grid
+      sm:grid-cols-2
+      gap-4
+    "
+  >
+
+    <Campo
+      titulo="Nome do entregador"
+      placeholder="Ex: Carlos"
+      value={
+        form.nomeEntregador
+      }
+      onChange={(valor) =>
+        alterarCampo(
+          "nomeEntregador",
+          valor
+        )
+      }
+    />
+
+    <Campo
+      titulo="WhatsApp do entregador"
+      placeholder="Ex: 38999999999"
+      value={
+        form.whatsappEntregador
+      }
+      onChange={(valor) =>
+        alterarCampo(
+          "whatsappEntregador",
+          valor
+        )
+      }
+      inputMode="tel"
+    />
+
+  </div>
+
+  <div
+    className="
+      mt-4
+      bg-[#f6ebe3]
+      rounded-2xl
+      p-4
+    "
+  >
+
+    <p
+      className="
+        text-xs
+        text-[#755340]
+        leading-relaxed
+      "
+    >
+      Estes dados serão usados para
+      enviar pelo WhatsApp o resumo
+      completo dos pedidos de entrega,
+      incluindo endereço, localização,
+      pagamento e valor.
+    </p>
+
+  </div>
+
+</section>
 
           {/* HORÁRIOS */}
 

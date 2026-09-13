@@ -790,6 +790,352 @@ export default function PedidosAdmin() {
 
   }
 
+// ============================================
+// ENVIAR PARA O ENTREGADOR
+// ============================================
+
+async function enviarParaEntregador(
+  pedido
+) {
+
+  if (
+    pedido.tipoEntrega !==
+    "entrega"
+  ) {
+
+    toast.error(
+      "Este pedido é para retirada."
+    );
+
+    return;
+
+  }
+
+  try {
+
+    /*
+      Busca as configurações no momento
+      do envio para sempre usar o
+      entregador atualmente cadastrado.
+    */
+
+    const response =
+      await api.get(
+        "/configuracoes"
+      );
+
+    const configuracoes =
+      response.data || {};
+
+    const nomeEntregador =
+      String(
+        configuracoes
+          .nomeEntregador || ""
+      ).trim();
+
+    let numeroEntregador =
+      String(
+        configuracoes
+          .whatsappEntregador ||
+        ""
+      ).replace(
+        /\D/g,
+        ""
+      );
+
+    if (!numeroEntregador) {
+
+      toast.error(
+        "Cadastre o WhatsApp do entregador nas configurações."
+      );
+
+      return;
+
+    }
+
+    /*
+      Se estiver salvo somente
+      com DDD + número, adiciona
+      o código do Brasil.
+    */
+
+    if (
+      numeroEntregador.length === 10 ||
+      numeroEntregador.length === 11
+    ) {
+
+      numeroEntregador =
+        `55${numeroEntregador}`;
+
+    }
+
+    if (
+      numeroEntregador.length < 12 ||
+      numeroEntregador.length > 13
+    ) {
+
+      toast.error(
+        "O WhatsApp do entregador parece inválido."
+      );
+
+      return;
+
+    }
+
+    const endereco =
+      pedido.endereco || {};
+
+    const linhasEndereco = [];
+
+    if (
+      endereco.rua ||
+      endereco.numero
+    ) {
+
+      linhasEndereco.push(
+        [
+          endereco.rua,
+          endereco.numero
+        ]
+          .filter(Boolean)
+          .join(", ")
+      );
+
+    }
+
+    if (endereco.bairro) {
+
+      linhasEndereco.push(
+        endereco.bairro
+      );
+
+    }
+
+    const cidadeEstado =
+      [
+        endereco.cidade,
+        endereco.estado
+      ]
+        .filter(Boolean)
+        .join(" - ");
+
+    if (cidadeEstado) {
+
+      linhasEndereco.push(
+        cidadeEstado
+      );
+
+    }
+
+    /*
+      Localização capturada
+      pelo cliente.
+    */
+
+    let linkLocalizacao = "";
+
+    if (endereco.linkMaps) {
+
+      linkLocalizacao =
+        endereco.linkMaps;
+
+    } else if (
+      endereco.latitude !==
+        undefined &&
+      endereco.latitude !== null &&
+      endereco.longitude !==
+        undefined &&
+      endereco.longitude !== null
+    ) {
+
+      linkLocalizacao =
+        `https://www.google.com/maps?q=${endereco.latitude},${endereco.longitude}`;
+
+    }
+
+    /*
+      Lista dos itens.
+    */
+
+    const itensTexto =
+      (pedido.itens || [])
+        .map((item) => {
+
+          const subtotalItem =
+            item.subtotal ??
+            (
+              Number(
+                item.preco || 0
+              ) *
+              Number(
+                item.quantidade || 0
+              )
+            );
+
+          return (
+            `${item.quantidade}x ` +
+            `${item.nome} — ` +
+            `${dinheiro(subtotalItem)}`
+          );
+
+        })
+        .join("\n");
+
+    /*
+      Forma de pagamento.
+    */
+
+    let pagamento =
+      pedido.pagamento ||
+      "Não informado";
+
+    if (
+      pagamento.toLowerCase() ===
+      "pix"
+    ) {
+
+      pagamento = "PIX";
+
+    } else if (
+      pagamento.toLowerCase() ===
+      "dinheiro"
+    ) {
+
+      pagamento = "Dinheiro";
+
+    }
+
+    const nomeLoja =
+      configuracoes.nomeLoja ||
+      "Delivery da Alê";
+
+    const linhas = [
+
+      `🛵 *${nomeLoja.toUpperCase()}*`,
+
+      nomeEntregador
+        ? `👋 Entregador: *${nomeEntregador}*`
+        : null,
+
+      "",
+
+      `📦 *Pedido #${idCurto(
+        pedido._id
+      )}*`,
+
+      "",
+
+      `👤 *Cliente:* ${
+        pedido.usuario?.nome ||
+        "Cliente"
+      }`,
+
+      pedido.usuario?.telefone
+        ? `📞 *Telefone:* ${pedido.usuario.telefone}`
+        : null,
+
+      "",
+
+      "📍 *ENDEREÇO*",
+
+      linhasEndereco.length > 0
+        ? linhasEndereco.join("\n")
+        : "Endereço não informado",
+
+      endereco.complemento
+        ? `🏠 *Complemento:* ${endereco.complemento}`
+        : null,
+
+      endereco.referencia
+        ? `📌 *Referência:* ${endereco.referencia}`
+        : null,
+
+      linkLocalizacao
+        ? `🗺️ *Localização:*\n${linkLocalizacao}`
+        : null,
+
+      "",
+
+      "🍽️ *ITENS DO PEDIDO*",
+
+      itensTexto ||
+        "Itens não informados",
+
+      "",
+
+      `Subtotal: ${dinheiro(
+        pedido.subtotal
+      )}`,
+
+      `Entrega: ${dinheiro(
+        pedido.taxaEntrega
+      )}`,
+
+      `💰 *TOTAL: ${dinheiro(
+        pedido.total
+      )}*`,
+
+      "",
+
+      `💳 *Pagamento:* ${pagamento}`,
+
+      pedido.pagamento ===
+        "dinheiro" &&
+      pedido.trocoPara
+        ? `💵 *Troco para:* ${dinheiro(
+            pedido.trocoPara
+          )}`
+        : null,
+
+      pedido.observacoes
+        ? `\n📝 *Observação:*\n${pedido.observacoes}`
+        : null,
+
+      "",
+
+      `📋 Status atual: ${pedido.status}`,
+
+      "",
+
+      "Pedido para entrega."
+
+    ];
+
+    const mensagem =
+      linhas
+        .filter(
+          (linha) =>
+            linha !== null &&
+            linha !== undefined
+        )
+        .join("\n");
+
+    const url =
+      `https://wa.me/${numeroEntregador}` +
+      `?text=${encodeURIComponent(
+        mensagem
+      )}`;
+
+    window.open(
+      url,
+      "_blank"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao enviar pedido para entregador:",
+      error
+    );
+
+    toast.error(
+      "Não foi possível preparar o pedido para o entregador."
+    );
+
+  }
+
+}
+
   // ============================================
   // FILTROS
   // ============================================
@@ -1380,7 +1726,7 @@ export default function PedidosAdmin() {
                     <div
                       className="
                         p-5
-                      "
+                      "                 
                     >
 
                       <div
@@ -1745,6 +2091,45 @@ export default function PedidosAdmin() {
                         </button>
 
                       </div>
+
+{/* ENVIAR PARA ENTREGADOR */}
+
+{pedido.tipoEntrega ===
+  "entrega" && (
+
+  <button
+    type="button"
+    onClick={() =>
+      enviarParaEntregador(
+        pedido
+      )
+    }
+    className="
+      w-full
+      min-h-[48px]
+      mt-2
+      rounded-xl
+      bg-[#5a3520]
+      hover:bg-[#452819]
+      text-white
+      font-extrabold
+      text-sm
+      flex
+      items-center
+      justify-center
+      gap-2
+      transition
+    "
+  >
+
+    <Truck size={18} />
+
+    Enviar para o entregador
+
+  </button>
+
+)}
+
 
                     </div>
 

@@ -1,12 +1,14 @@
 import { useContext, useState } from "react";
 
 import {
+  AtSign,
   ChevronRight,
   ClipboardList,
   LogIn,
   LogOut,
   Mail,
   MapPin,
+  MessageCircle,
   Pencil,
   Phone,
   Save,
@@ -1002,6 +1004,91 @@ async function salvarTelefone() {
 
         </section>
 
+{/* DESENVOLVEDOR */}
+
+<div
+  className="
+    mt-5
+    mb-4
+    text-center
+  "
+>
+  <p
+    className="
+      text-[11px]
+      text-[#8a7467]
+    "
+  >
+    Desenvolvido por
+    <span
+      className="
+        font-bold
+        text-[#5a3520]
+      "
+    >
+      {" "}Willian Junior Portinari Silva
+    </span>
+  </p>
+
+  <div
+    className="
+      mt-2
+      flex
+      items-center
+      justify-center
+      gap-3
+    "
+  >
+
+    <a
+      href="https://www.instagram.com/willianjuniorop/"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Instagram"
+      className="
+        w-8
+        h-8
+        flex
+        items-center
+        justify-center
+        opacity-70
+        hover:opacity-100
+        transition
+      "
+    >
+      <img
+        src="https://cdn.simpleicons.org/instagram"
+        alt="Instagram"
+        className="w-5 h-5"
+      />
+    </a>
+
+    <a
+      href="https://wa.me/5538999643492?text=Olá%20Willian%2C%20vi%20seu%20contato%20no%20Delivery%20da%20Alê."
+      target="_blank"
+      rel="noopener noreferrer"
+      title="WhatsApp"
+      className="
+        w-8
+        h-8
+        flex
+        items-center
+        justify-center
+        opacity-70
+        hover:opacity-100
+        transition
+      "
+    >
+      <img
+        src="https://cdn.simpleicons.org/whatsapp"
+        alt="WhatsApp"
+        className="w-5 h-5"
+      />
+    </a>
+
+  </div>
+</div>
+
         {/* SAIR */}
 
         <button
@@ -1035,4 +1122,5 @@ async function salvarTelefone() {
     </div>
 
   );
+  
 }
